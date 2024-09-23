@@ -10,8 +10,7 @@ author:
 format:
   clean-revealjs:
     self-contained: true
-    footer: "[Git and GitHub](https://danilofreire.github.io/)"
-bibliography: references.bib
+    footer: "[Git and GitHub](https://raw.githack.com/danilofreire/qtm350/main/lectures/lecture-05/05-git-github.html)"
 transition: slide
 transition-speed: default
 scrollable: true
