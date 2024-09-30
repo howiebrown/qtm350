@@ -1,0 +1,10 @@
+---
+title: "First Quarto Document"
+author: "Howard Brown"
+date: "2024-09-30"
+format: html
+bibliography: references.bib
+---
+
+#intro
+
