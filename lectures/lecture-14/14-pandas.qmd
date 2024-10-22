@@ -1,0 +1,1190 @@
+---
+title: QTM 350 - Data Science Computing
+subtitle: Lecture 14 - Introduction to Pandas
+date: 2024-10-21
+date-format: "DD MMMM, YYYY"
+author:
+  - name: Danilo Freire
+    email: danilo.freire@emory.edu
+    affiliations: Emory University
+format:
+  clean-revealjs:
+    self-contained: true
+    code-overflow: wrap
+    footer: "[Pandas](https://raw.githack.com/danilofreire/qtm350/main/lectures/lecture-14/14-pandas.html)"
+    drop:
+      button: true
+      engine: pyodide
+      pyodide:
+        packages:
+          - matplotlib
+          - numpy
+          - pandas
+transition: slide
+transition-speed: default
+scrollable: true
+engine: jupyter
+revealjs-plugins:
+  - appearance
+  - drop
+  - fontawesome
+  - multimodal
+editor:
+  render-on-save: true
+---
+
+# Hello, everyone! 👋 {background-color="#2d4563"}
+
+# I've made something! <br> Let me know if it works 🐍 {background-color="#2d4563"}
+
+## Jupyter Notebooks online 🌐
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width="50%"}
+- New users find it challenging to install Python and Jupyter Notebook on their computers
+- So I've made a [Jupyter Notebook online]{.alert} that you can use to run Python code [without installing anything!]{.alert} 🤓
+- I've used [Pyodide](https://pyodide.org/en/stable/){data-modal-type="iframe"} and [JupyterLite](https://jupyterlite.readthedocs.io/){data-modal-type="iframe"} to run Python code in the browser
+- You can access it on the [Jupyter Lite tab on the course website](https://danilofreire.github.io/qtm350/){data-modal-type="iframe"}
+- The website is <https://danilofreire.github.io/qtm350/jupyter>
+:::
+
+:::{.column width="50%"}
+- It already comes with all packages we need for this class, such as NumPy, Pandas, Matplotlib, and Seaborn
+- You can install many other packages too! 📦
+- Not all Python packages work, but many do. Install them with 
+
+```python
+%pip install package-name
+```
+
+- You can also use it to run `R` and `JavaScript` code, as well as write `LaTeX` and `Markdown` documents
+- [Please download your files with the right-click menu before closing the browser!]{.alert}
+- Let me know if you find any bugs! 🐞
+:::
+:::
+:::
+
+
+# Brief recap of the last lecture {background-color="#2d4563"}
+
+## Introduction to Python 🐍
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width="50%"}
+- In the last lecture, we had a brief introduction to Python
+- We covered the main concepts of the language, such as variables, operators, control structures, and functions
+- We also saw how to install Python and Jupyter Notebook
+- We briefly discussed the various data types in Python, such as integers, floats, strings, lists, tuples, and dictionaries
+- We finished with for loops, if statements, and functions
+- Today we will see lean more about [Numpy](https://numpy.org) and, more importantly, [Pandas](https://pandas.pydata.org/)
+:::
+
+:::{.column width="50%"}
+:::{style="text-align: center;"}
+![](figures/numpy.png)
+![](figures/pandas.png)
+:::
+:::
+:::
+:::
+
+# Numpy 🧮 {background-color="#2d4563"}
+
+## Numpy arrays
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+:::{.columns}
+:::{.column width="50%"}
+#### What is Numpy?
+
+- NumPy stands for "Numerical Python" and it is the standard Python library used for working with arrays (i.e., vectors & matrices), linear algebra, and other numerical computations 
+- NumPy is written in C, making NumPy arrays [faster and more memory efficient than Python lists]{.alert}
+- If you have Anaconda installed, you already have NumPy installed too. But if you don't, you can install it using `conda install numpy` or `pip install numpy`
+- In Python, we export packages with the `import` command. 
+- It is also common to use [aliases](https://www.datacamp.com/tutorial/modules-in-python) to make the code shorter and more readable. Numpy's is `np`
+
+```{python}
+#| echo: true
+#| eval: true
+import numpy as np 
+```
+:::
+
+:::{.column width="50%"}
+#### What is an array?
+
+- Arrays are "n-dimensional" data structures that can contain all the basic Python data types, e.g., floats, integers, strings etc 
+- However, they work best with numeric data
+- NumPy arrays (`ndarrays`) are homogenous, which means that items in the array should be of the same type. 
+- `ndarrays` are also compatible with numpy's vast collection of in-built functions!
+
+:::{style="text-align: center;"}
+![](figures/array.png){width="70%"}
+:::
+:::
+:::
+:::
+
+## Creating arrays
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+:::{.columns}
+:::{.column width="50%"}
+- A numpy array is sort of like a list, but with more functionality
+
+```{python}
+#| echo: true
+#| eval: true
+my_list = [1, 2, 3, 4, 5]
+my_list
+```
+
+```{python}
+#| echo: true
+#| eval: true
+my_array = np.array([1, 2, 3, 4, 5])
+my_array
+```
+
+- But it has the type `numpy.ndarray`
+
+- Unlike a list, arrays can only hold a single type (usually numbers). Check this out
+
+```{python}
+#| echo: true
+#| eval: true
+my_list = [1, "hi"]
+my_list
+```
+
+```{python}
+#| echo: true
+#| eval: true
+my_array = np.array([1, "hi"])
+my_array
+``` 
+ 
+- Above: NumPy converted the integer 1 into the string `'1'`!
+:::
+
+:::{.column width="50%"}
+- `ndarrays` are typically created using two main methods:
+  - From existing data using `np.array()`
+  - Using built-in functions like `np.zeros()`, `np.ones()`, `np.arange()`, `np.linspace()`, `np.random.normal()`, etc.
+- Let's see some examples
+
+```{python}
+#| echo: true
+#| eval: true
+my_list = [1, 2, 3]
+np.array(my_list)
+```
+```{python}
+#| echo: true
+#| eval: true
+np.arange(1, 10, 2)  # from 1 inclusive to 10 exclusive, step 2
+```
+
+```{python}
+#| echo: true
+#| eval: true
+np.linspace(0, 10, 5) # from 0 to 10, 5 numbers
+```
+
+- You can have multi-dimensional arrays (indicated by double square brackets `[[ ]]`):
+
+```{python}
+#| echo: true
+#| eval: true
+np.array([[1, 2, 3], [4, 5, 6]])
+```
+:::
+:::
+:::
+
+## Array operations
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- Arrays can be used in [arithmetic operations]{.alert}, such as addition, subtraction, multiplication, and division
+- These operations are performed element-wise, meaning that [the operation is applied to each element in the array]{.alert}
+
+```{python}
+#| echo: true
+#| eval: true
+a = np.array([1, 2, 3])
+b = np.array([4, 5, 6])
+a + b
+```
+
+```{python}
+#| echo: true
+#| eval: true
+a * b
+```
+
+- You can also apply functions to arrays, such as `np.sqrt()`, `np.exp()`, `np.log()`, `np.sin()`, `np.cos()`, `np.tan()`, etc. Please check the [documentation](https://numpy.org/doc/stable/reference/arrays.ndarray.html#array-methods) for more information
+ 
+```{python}
+#| echo: true
+#| eval: true
+np.sqrt(a)
+```
+
+```{python}
+#| echo: true
+#| eval: true
+np.exp(a)
+```
+:::
+
+:::{.column width="50%"}
+- You can also apply logical operations to arrays, such as `==`, `!=`, `>`, `<`, `>=`, `<=`, etc.
+- These operations return boolean arrays
+
+```{python}
+#| echo: true
+#| eval: true
+a == b
+```
+
+```{python}
+#| echo: true
+#| eval: true
+a < b
+```
+
+- You can call (most of) these functions on the array itself using the [dot notation](https://builtin.com/data-science/dot-notation) `a.sum()`, `a.mean()`, `a.max()`, `a.min()`, etc.
+  - A dot "." basically means "in here"
+
+```{python}
+#| echo: true
+#| eval: true
+a.sum()
+```
+
+```{python}
+#| echo: true
+#| eval: true
+a.mean()
+```
+
+```{python}
+#| echo: true
+#| eval: true
+a.max()
+```
+
+:::
+:::
+:::
+
+## Broadcasting
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- Broadcasting allows NumPy to work with arrays of different shapes when performing arithmetic operations
+- The smaller array is "broadcast" across the larger array so that they have compatible shapes
+- So it substitues `for` loops in many cases! 😅
+- One example is adding a scalar to an array
+
+```{python}
+#| echo: true
+#| eval: true
+cost = np.array([20, 15, 25])
+print("Pie cost:")
+print(cost)
+```
+
+```{python}
+#| echo: true
+#| eval: true
+sales = np.array([[2, 3, 1], [6, 3, 3], [5, 3, 5]])
+print("\nPie sales (#):")
+print(sales)
+```
+- How do we make them the same size?
+:::
+
+:::{.column width="50%"}
+![](figures/pies_broadcast.png){width="100%"}
+
+- We can broadcast the cost array to the sales array
+- We will use the `np.repeat()` function to do this
+
+```{python}
+#| echo: true
+#| eval: true
+cost = np.repeat(cost, 3).reshape((3, 3))
+cost
+```
+
+- Now we can calculate the total sales
+
+```{python}
+#| echo: true
+#| eval: true
+total_sales = cost * sales
+total_sales
+```
+
+- Wohoo! 🥳 Much easier than creating a loop 
+:::
+:::
+:::
+
+## Indexing and slicing
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+:::{.columns}
+:::{.column width="50%"}
+#### Numeric indexing
+
+- Indexing arrays is similar to indexing lists but there are just more dimensions
+- We use square brackets `[]` to index arrays
+- Colons `:` are used to slice arrays
+
+```{python}
+#| echo: true
+#| eval: true
+x = np.arange(10)
+x
+```
+
+```{python}
+#| echo: true
+#| eval: true
+x[3]
+```
+
+```{python}
+#| echo: true
+#| eval: true
+x[2:5]
+```
+
+```{python}
+#| echo: true
+#| eval: true
+x[2:]
+```
+
+```{python}
+#| echo: true
+#| eval: true
+x[-1]
+```
+
+```{python}
+#| echo: true
+#| eval: true
+x[5:0:-1] # reverse
+```
+:::
+
+:::{.column width="50%"}
+#### Multi-dimensional arrays
+
+- For multi-dimensional arrays, we use commas to separate the indices
+- The first index refers to the row, the second to the column, and so on
+
+```{python}
+#| echo: true
+#| eval: true
+x = np.random.randint(10, size=(4, 6))
+x
+```
+
+```{python}
+#| echo: true
+#| eval: true
+x[3, 4]
+```
+
+```{python}
+#| echo: true
+#| eval: true
+x[2, :]
+```
+
+```{python}
+#| echo: true
+#| eval: true
+x[:, 3]
+```
+
+```{python}
+#| echo: true
+#| eval: true
+x[2:, :3]
+```
+:::
+:::
+:::
+
+# Pandas! 🐼 {background-color="#2d4563"}
+
+## Pandas is pretty cool! 🐼
+### Pandas Series
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+- Pandas is the most popular Python library for tabular data structures
+- Think of Pandas as an extremely powerful version of Excel or `dplyr` + `tibble` in `R`
+- Pandas is built on top of NumPy, so it is fast and memory efficient
+- Pandas has two main data structures: `Series` and `DataFrame`
+- A `Series` is a one-dimensional array with an index, pretty much like a `np.array`, but [with a label for each element]{.alert}
+  - They are [strictly one-dimensional]{.alert}
+- You can create a `Series` from a list, a NumPy array, a dictionary, or a scalar value using `pd.Series()` (note the capital "S")
+- You import pandas with `import pandas as pd`
+:::
+
+## Creating Series
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+:::{.columns}
+:::{.column width="50%"}
+![](figures/series.png)
+
+```{python}
+#| echo: true
+#| eval: true
+import pandas as pd
+
+pd.Series(data = [-5, 1.3, 21, 6, 3])
+```
+:::
+
+:::{.column width="50%"}
+- The left column is the index, and the right column is the data
+- If you don't specify an index, Pandas will create one for you
+- But you can add a custom index:
+
+```{python}
+#| echo: true
+#| eval: true
+pd.Series(data = [-5, 1.3, 21, 6, 3],
+          index = ['a', 'b', 'c', 'd', 'e'])
+
+```
+
+- You can create a Series from a dictionary:
+
+```{python}
+#| echo: true
+#| eval: true
+pd.Series(data = {'a': 10, 'b': 20, 'c': 30})
+```
+:::
+:::
+:::
+
+## Indexing and slicing Series
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+:::{.columns}
+:::{.column width="50%"}
+- You can index and slice a `Series` like a NumPy array
+- In fact, series can be passed to most NumPy functions! 
+- They can be indexed using square brackets `[ ]` and sliced using colon `:` notation:
+
+```{python}
+#| echo: true
+#| eval: true
+s = pd.Series(data = range(5),
+              index = ['A', 'B', 'C', 'D', 'E'])
+s
+```
+
+```{python}
+#| echo: true
+#| eval: true
+s[0]
+```
+
+```{python}
+#| echo: true
+#| eval: true
+s['A']
+```
+
+```{python}
+#| echo: true
+#| eval: true
+s[["B", "D", "C"]]
+```
+:::
+
+:::{.column width="50%"}
+- Note above how array-based indexing and slicing also returns the series index
+- Finally, we can also do boolean indexing with series
+
+```{python}
+#| echo: true
+#| eval: true
+s[s >= 1]
+```
+
+```{python}
+#| echo: true
+#| eval: true
+s[s > s.mean()]
+```
+
+```{python}
+#| echo: true
+#| eval: true
+(s != 1)
+```
+:::
+:::
+:::
+
+## Series operations
+
+:::{style="margin-top: 30px; font-size: 19px;"}
+:::{.columns}
+:::{.column width="50%"}
+- Series can be used in arithmetic operations, such as addition, subtraction, multiplication, and division
+- Unlike `ndarrays`, operations between Series [align values based on their LABELS]{.alert} (not their position in the structure) 
+- The resulting index will be the sorted union of the two indexes 
+
+```{python}
+#| echo: true
+#| eval: true
+s1 = pd.Series(data = range(4),
+               index = ["A", "B", "C", "D"])
+s1
+```
+
+```{python}
+#| echo: true
+#| eval: true
+s2 = pd.Series(data = range(10, 14),
+               index = ["B", "C", "D", "E"])
+s2
+```
+
+```{python}
+#| echo: true
+#| eval: true
+s1 + s2
+```
+:::
+
+:::{.column width="50%"}
+![](figures/series_operation.png)
+
+- Indices that don't match will appear in the product but with NaN values
+- NumPy also accepts series as an argument to most functions because series are built off numpy arrays
+
+```{python}
+#| echo: true
+#| eval: true
+np.exp(s1)
+```
+
+:::
+:::
+:::
+
+# Pandas DataFrames 🐼 {background-color="#2d4563"}
+
+## Pandas DataFrames
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- Pandas DataFrames are your new best friend 😂
+- DataFrames are really just Series stuck together! 
+- Think of a DataFrame as a dictionary of series, with the "keys" being the column labels and the "values" being the series data
+
+![](figures/dataframe.png)
+:::
+
+:::{.column width="50%"}
+- Dataframes can be created using `pd.DataFrame()` (note the capital "D" and "F")
+
+```{python}
+#| echo: true
+#| eval: true
+pd.DataFrame([[1, 2, 3],
+              [4, 5, 6],
+              [7, 8, 9]])
+```
+
+- We can use the `index` and `columns` arguments to give them labels:
+
+```{python}
+#| echo: true
+#| eval: true
+pd.DataFrame([[1, 2, 3],
+              [4, 5, 6],
+              [7, 8, 9]],
+             index = ["R1", "R2", "R3"],
+             columns = ["C1", "C2", "C3"])
+```
+:::
+:::
+:::
+
+## Creating DataFrames
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- DataFrames can be created from dictionaries, lists, NumPy arrays, and Series
+- It is common to create DataFrames from dictionaries, where the keys are the column names and the values are the data
+
+```{python}
+#| echo: true
+#| eval: true
+pd.DataFrame({"C1": [1, 2, 3],
+              "C2": ['A', 'B', 'C']},
+             index=["R1", "R2", "R3"])
+
+```
+:::
+
+:::{.column width="50%"}
+- Usually, you will create a `DataFrame` from a CSV file using `pd.read_csv()`
+- You can also create a `DataFrame` from an Excel file using `pd.read_excel()`
+- Pandas can read from many other sources, such as SQL databases (as we will see in this course), JSON files, and even HTML tables
+
+```{python}
+#| echo: true
+#| eval: true
+df = pd.read_csv("data/iris.csv")
+df.head()
+```
+:::
+:::
+:::
+
+## Creating DataFrames - Cheat Sheet
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+
+|[Create DataFrame from]{.alert}|[Code]{.alert}|
+|---|---|
+|Lists of lists|`pd.DataFrame([['Danilo', 7], ['Maria', 15], ['Lucas', 3]])`|
+|ndarray|`pd.DataFrame(np.array([['Danilo', 7], ['Maria', 15], ['Lucas', 3]]))`|
+|Dictionary|`pd.DataFrame({"Name": ['Danilo', 'Maria', 'Lucas'], "Number": [7, 15, 3]})`|
+|List of tuples|`pd.DataFrame(zip(['Danilo', 'Maria', 'Lucas'], [7, 15, 3]))`|
+|Series|`pd.DataFrame({"Name": pd.Series(['Danilo', 'Maria', 'Lucas']), "Number": pd.Series([7, 15, 3])})`|
+
+See the [Pandas documentation](https://pandas.pydata.org/pandas-docs/stable/user_guide/dsintro.html#dataframe) for more
+:::
+
+## Indexing and slicing DataFrames
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- There are several main ways to select data from a DataFrame:
+  - Using square brackets `[ ]`, `.loc[]`, `.iloc[]`, Boolean indices, and `.query()`
+
+```{python}
+#| echo: true
+#| eval: true
+df = pd.DataFrame({"Name": ["Danilo", "Maria", "Lucas"],
+                   "Language": ["Python", "Python", "R"],
+                   "Courses": [5, 4, 7]})
+df
+```
+
+- You can select a column using square brackets `[ ]` or dot notation `.`
+
+```{python}
+#| echo: true
+#| eval: true
+df["Name"]
+```
+
+```{python}
+#| echo: true
+#| eval: true
+df.Name
+```
+:::
+
+:::{.column width="50%"}
+- You can select multiple columns by passing a list of column names
+
+```{python}
+#| echo: true
+#| eval: true
+df[["Name", "Courses"]]
+```
+
+- You can select rows using `.iloc[]`, which accepts [integers]{.alert} as references to rows/columns
+
+```{python}
+#| echo: true
+#| eval: true
+df.iloc[0]  # returns a series
+```
+
+```{python}
+#| echo: true
+#| eval: true
+df.iloc[0:2]  # returns a dataframe
+```
+:::
+:::
+:::
+
+## Indexing and slicing DataFrames
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- Now let's look at `.loc` which accepts [labels]{.alert} as references to rows/columns:
+
+```{python}
+#| echo: true
+#| eval: true
+df.loc[:, 'Name']
+```
+
+```{python}
+#| echo: true
+#| eval: true
+df.loc[:, 'Name':'Language']
+```
+
+```{python}
+#| echo: true
+#| eval: true
+df.loc[[0, 2], ['Language']]
+```
+:::
+
+:::{.column width="50%"}
+- Boolean indexing is also possible
+  
+```{python}
+#| echo: true
+#| eval: true
+df[df["Courses"] > 5]
+```
+
+```{python}
+#| echo: true
+#| eval: true
+df[df['Name'] == "Danilo"]
+```
+:::
+:::
+:::
+
+## Indexing and slicing with `.query()`
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- The `.query()` method allows you to select data using a string expression
+- It is my favourite method because it is more readable and less error-prone
+- `.query()` accepts a string expression to evaluate and it "knows" the names of the columns in your dataframe
+
+```{python}
+#| echo: true
+#| eval: true
+df.query('Courses > 5')
+```
+
+```{python}
+#| echo: true
+#| eval: true
+df.query('Name == "Danilo"')
+```
+:::
+
+:::{.column width="50%"}
+```{python}
+#| echo: true
+#| eval: true
+df.query("Courses > 4 & Language == 'Python'")
+```
+
+- Note the use of single quotes AND double quotes above, lucky we have both in Python!
+
+- You can also use the `@` symbol to reference variables in the environment
+
+```{python}
+#| echo: true
+#| eval: true
+min_courses = 5
+df.query("Courses > @min_courses")
+```
+:::
+:::
+:::
+
+## Indexing cheatsheet
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+
+|[Method]{.alert}|[Syntax]{.alert}|[Output]{.alert}|
+|---|---|---|
+|Select column|`df[col_label]`|Series|
+|Select row slice|`df[row_1_int:row_2_int]`|DataFrame|
+|Select row/column by label|`df.loc[row_label(s), col_label(s)]`|Object for single selection, Series for one row/column, otherwise DataFrame|
+|Select row/column by integer|`df.iloc[row_int(s), col_int(s)]`|Object for single selection, Series for one row/column, otherwise DataFrame|
+|Select by row integer & column label|`df.loc[df.index[row_int], col_label]`|Object for single selection, Series for one row/column, otherwise DataFrame|
+|Select by row label & column integer|`df.loc[row_label, df.columns[col_int]]`|Object for single selection, Series for one row/column, otherwise DataFrame|
+|Select by boolean|`df[bool_vec]`|Object for single selection, Series for one row/column, otherwise DataFrame|
+|Select by boolean expression|`df.query("expression")`|Object for single selection, Series for one row/column, otherwise DataFrame|
+:::
+
+# Reading/Writing Data From External Sources 📂 {background-color="#2d4563"}
+
+## Reading data from external sources
+
+:::{style="margin-top: 30px; font-size: 19px;"}
+:::{.columns}
+:::{.column width="50%"}
+#### .csv files
+
+- Pandas can read data from many sources, such as CSV, Excel, SQL databases, JSON, HTML, and more
+- As mentioned above, `.csv` files are the most common data format (for good reason!)
+- You can use the `pd.read_csv()` function for this
+- There are so many arguments that can be used to help read in your `.csv` file in an efficient and appropriate manner, feel free to check them out by using `shift + tab` in Jupyter, or typing `help(pd.read_csv)`
+
+```{python}
+#| eval: true
+df = pd.read_csv("data/iris.csv")
+df.head()
+```
+
+- You can save a DataFrame to a `.csv` file using `df.to_csv()`
+
+```{python}
+#| echo: true
+#| eval: false
+df.to_csv("data/iris_copy.csv", index=False)
+```
+:::
+
+:::{.column width="50%"}
+#### URLs
+
+- You can also read data from a URL using `pd.read_csv()`
+- This is useful when you want to read data from a website without downloading it first
+
+```{python}
+#| echo: true
+#| eval: true
+url = "https://github.com/danilofreire/qtm350/raw/refs/heads/main/lectures/lecture-14/data/iris.csv"
+df = pd.read_csv(url)
+df.head()
+```
+
+- See the [Pandas documentation here](https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-tools-text-csv-hdf5) for information about reading and writing data
+:::
+:::
+:::
+
+# Common DataFrame Operations 🐼 {background-color="#2d4563"}
+
+## Common DataFrame operations
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- DataFrames have built-in functions for performing most common operations, e.g., `.min()`, `idxmin()`, `sort_values()`, etc. 
+- They're all documented in the [Pandas documentation here](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html) but I'll demonstrate a few below
+
+```{python}
+#| echo: true
+#| eval: true
+df = pd.read_csv('data/cycling_data.csv')
+df.head(7)
+```
+:::
+
+:::{.column width="50%"}
+```{python}
+#| echo: true
+#| eval: true
+df.min()
+```
+
+```{python}
+#| echo: true
+#| eval: true
+df['Time'].min()
+```
+
+```{python}
+#| echo: true
+#| eval: true
+df['Time'].idxmin() # index of the minimum value
+```
+
+```{python}
+#| echo: true
+#| eval: true
+df.iloc[20]
+```
+:::
+:::
+:::
+
+## Sorting DataFrames
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- `.sort_values()` is used to sort a DataFrame by one or more columns
+- You can sort by one or more columns, and you can specify the order (ascending or descending)
+- The default argument is `ascending=True`
+
+```{python}
+#| echo: true
+#| eval: true
+df.sort_values(by='Distance').head()
+```
+:::
+
+:::{.column width="50%"}
+```{python}
+#| echo: true
+#| eval: true
+df.sort_values(by='Distance', ascending=False).head(4)
+```
+
+- You can also combine `.query()` with `.sort_values()`
+
+```{python}
+#| echo: true
+#| eval: true
+df.query('Distance > 13').sort_values(by='Time')
+```
+:::
+:::
+:::
+
+# DataFrame Characteristics 🔎 {background-color="#2d4563"}
+
+## DataFrame characteristics
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- DataFrames have many attributes that can be used to understand the data
+- For example, you can use `.shape` to get the dimensions of the DataFrame
+
+```{python}
+#| echo: true
+#| eval: true
+df.shape
+```
+
+- `.info()` prints a summary of the DataFrame
+
+```{python}
+#| echo: true
+#| eval: true
+df.info()
+```
+
+- `.columns` returns the column names
+
+```{python}
+#| echo: true
+#| eval: true
+df.columns
+```
+:::
+
+:::{.column width="50%"}
+- `.describe()` prints the descriptive stats of the numerical columns
+
+```{python}
+#| echo: true
+#| eval: true
+df.describe()
+```
+
+- `.dtypes` returns the data types of the columns
+
+```{python}
+#| echo: true
+#| eval: true
+df.dtypes
+```
+
+:::
+:::
+:::
+
+## Rename columns
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- We can rename columns two ways:
+ - Using `.rename()` (to selectively change column names, usually recommended)
+ - By setting the `.columns` attribute (to change all column names at once)
+
+```{python}
+#| echo: true
+#| eval: true
+df.head(2)
+```
+
+```{python}
+#| echo: true
+#| eval: true
+df.rename(columns={"Date": "Datetime",
+                   "Comments": "Notes"})
+df.head(2)
+```
+
+- Wait? What happened? Nothing changed? 🤔
+:::
+
+:::{.column width="50%"}
+- We did actually rename columns of our dataframe but we didn’t modify the dataframe inplace, we made a copy of it 
+- There are generally two options for making permanent dataframe changes:
+  - Use the argument `inplace=True`, e.g., `df.rename(..., inplace=True)`, available in most functions/methods
+  - Re-assign, e.g., `df = df.rename(...)` (recommended by Pandas)
+
+```{python}
+#| echo: true
+#| eval: true
+df = df.rename(columns={"Date": "Datetime",
+                        "Comments": "Notes"})
+df.head(2)
+```
+
+- Now it works fine! 🥳
+:::
+:::
+:::
+
+## Rename columns
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+- If you wish to change all of the columns of a dataframe, you can do so by setting the `.columns` attribute:
+
+```{python}
+#| echo: true
+#| eval: true
+df.columns = [f"Column {_}" for _ in range(1, 7)]
+df.head(5)
+```
+
+- This is a bit more dangerous than using `.rename()` because [you can easily mess up the order of the columns]{.alert} 😅
+- So be careful when using this method
+::: 
+
+## Adding and removing columns
+
+:::{style="margin-top: 30px; font-size: 18px;"}
+:::{.columns}
+:::{.column width="50%"}
+- There are two main ways to add/remove columns of a dataframe: 
+  - Use `[]` to add columns 
+  - Use `.drop()` to drop columns
+
+- Let's re-read in a fresh copy of the cycling dataset
+
+```{python}
+#| echo: true
+#| eval: true
+df = pd.read_csv('data/cycling_data.csv')
+df.head(2)
+```
+
+- Let's add new columns to the dataframe
+
+```{python}
+#| echo: true
+#| eval: true
+df['Rider'] = 'Danilo Freire'
+df['Avg Speed'] = df['Distance'] * 1000 / df['Time']  # avg. speed in m/s
+df.head(2)
+```
+:::
+
+:::{.column width="50%"}
+- Now let's remove the columns we just added
+
+```{python}
+#| echo: true
+#| eval: true
+df = df.drop(columns=['Rider', 'Avg Speed'])
+df.head(4)
+```
+:::
+:::
+:::
+
+## Adding and removing rows
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+- You won’t often be adding rows to a dataframe manually (you’ll usually add rows through joining) 
+- You can add/remove rows of a dataframe in two ways: `.concat()` to add rows and `.drop()` to drop rows
+
+- Let's add a new row to the dataframe
+
+```{python}
+#| echo: true
+#| eval: true
+another_row = pd.DataFrame([["12 Oct 2019, 00:10:57", "Morning Ride", "Ride",
+                             2331, 12.67, "Washed and oiled bike last night"]],
+                           columns = df.columns,
+                           index = [33])
+df = pd.concat([df, another_row])
+df.tail(2)
+```
+
+- Finally, let's remove the row we just added
+
+```{python}
+#| echo: true
+#| eval: true
+df = df.drop(index=33)
+df.tail(2)
+```
+:::
+
+## Why ndarrays and Series and DataFrames?
+
+:::{style="margin-top: 30px; font-size: 23px;"}
+- At this point, you might be asking why we need all these different data structures
+- Well, they all serve different purposes and are suited to different tasks. For example:
+  - NumPy is typically faster/uses less memory than Pandas
+  - not all Python packages are compatible with NumPy & Pandas
+  - the ability to add labels to data can be useful (e.g., for time series)
+  - NumPy and Pandas have different built-in functions available
+
+- My advice: use the simplest data structure that fulfills your needs!
+
+- Finally, we've seen how to go from: `ndarray (np.array()) -> series (pd.series()) -> dataframe (pd.DataFrame())`
+- Remember that we can also go the other way: `dataframe/series -> ndarray using df.to_numpy()`
+- But you will probably use DataFrames most of the time 😉
+:::
+
+## Conclusion 
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+:::{.incremental}
+- Today we learned about [NumPy and Pandas]{.alert}, two of the most important Python libraries for data manipulation
+- We saw how to [create arrays and series]{.alert}, and how to [perform operations]{.alert} on them
+- We also saw how to [create and manipulate DataFrames]{.alert}, and how to read/write data from/to external sources
+- We learned how to [index and slice arrays and DataFrames]{.alert}
+- We also learned how to [rename columns, add/remove columns/rows, and how to sort DataFrames]{.alert}
+- Finally, we discussed why we need [different data structures]{.alert}
+- Next time, we will learn about [DataFrame reshaping, joining data, applying custom functions, visualising Dataframes with `.plot()`, and more!]{.alert} 😊
+:::
+:::
+
+# And that's a wrap! 🎬 {background-color="#2d4563"}
+
+# Thank you very much! <br> See you next time! 😊🙏🏽 {background-color="#2d4563"}
