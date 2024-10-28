@@ -1,0 +1,96 @@
+---
+title: "Assignment 08: Advanced Pandas"
+author: "Your Name"
+date: "October 30, 2024"
+format: html
+---
+
+## Introduction
+
+In this assignment, you will apply pandas techniques to analyse the `results.csv` dataset from Formula 1 races. Each question is designed to test your ability to manipulate and analyse data in Python.
+
+## Instructions
+
+- **Data Loading**: Use `pd.read_csv()` to load the `results.csv` dataset. The data are available in the `assignments` folder or in the `08-assignment.zip` file in the `assignments` folder [in the course repository](https://github.com/danilofreire/qtm350/tree/main/assignments). Treat `\\N` as `NaN` when loading the data.
+- **Data Cleaning**: Ensure that all relevant columns are in the appropriate data types before performing analyses. Convert the `time` and `fastestLapTime` columns to `timedelta` data types, and the others to numeric data types if necessary (`to_numeric`). Use `errors='coerce'` to all conversions if needed.
+
+## Questions
+
+### 1. Filtering Top 5 Finishers
+
+- **Functions to Use**: `query()`
+  
+- **Task**: Filter the DataFrame to include only drivers who finished in the top 5 positions (`position`). Return the resulting DataFrame with all relevant columns.
+
+### 2. Handling Missing Race Times
+
+- **Functions to Use**: `to_timedelta()`, `fillna()` (search what `to_timedelta()` does)
+  
+- **Task**: Identify missing values in the `time` column and fill them with the median race time. Ensure that the `time` column remains in an appropriate data format after filling. Use the option `errors='coerce'` if you encounter any issues. Maybe you don't need to fill the missing values? Think about it.
+
+### 3. Total Points per Driver
+
+- **Functions to Use**: `groupby()`, `agg()`, `reset_index()`
+  
+- **Task**: Calculate the total points earned by each driver across all races. Return a DataFrame with columns `driverId` and `TotalPoints`.
+
+### 4. Constructors with Most Wins
+
+- **Functions to Use**: `query()`, `groupby()`, `agg()`, `reset_index()`
+  
+- **Task**: Determine which `constructorId` has the highest number of first-place finishes (`position == 1`). Return the `constructorId` along with the number of wins.
+
+### 5. Average Fastest Lap Speed per Race
+
+- **Functions to Use**: `groupby()`, `agg()`, `reset_index()`
+  
+- **Task**: Calculate the average `fastestLapSpeed` for each `raceId`. Return a DataFrame with columns `raceId` and `AverageFastestLapSpeed`.
+
+### 6. Top 3 Drivers by Average Position
+
+- **Functions to Use**: `groupby()`, `agg()`, `nsmallest()`, `reset_index()`
+  
+- **Task**: Identify the top 3 drivers with the lowest average `positionOrder` (indicating better performance). Return a DataFrame with columns: `driverId` and `AveragePosition`.
+
+### 7. Distribution of Starting Grid Positions
+
+- **Functions to Use**: `plot()`, `hist()`
+  
+- **Task**: Create a histogram to visualise the distribution of `grid` positions from which drivers started the races. Customise the histogram with appropriate titles and labels.
+
+### 8. Identifying Consistent Finishers
+
+- **Functions to Use**: `groupby()`, `filter()`, `unique()`
+  
+- **Task**: Identify drivers who have finished every race they entered (`statusId == 1`). Return a list of their `driverId`s. You may need to create a custom function to filter the data, such as `lambda x: (x['statusId'] == 1).all())`.
+
+### 9. Fastest Laps by Driver
+
+- **Functions to Use**: `groupby()`, `agg()`, `reset_index()`, `to_timedelta()`
+  
+- **Task**: For each driver, find the fastest `fastestLapTime` they have achieved. Return a DataFrame with columns: `driverId` and `FastestLapTime`.
+
+### 10. Correlation Between Grid Position and Final Position
+
+- **Functions to Use**: `dropna()`, `corr()`, `to_numeric()`
+  
+- **Task**: Estimate the correlation coefficient between starting `grid` position and final `position`. Interpret the strength and direction of the relationship.
+
+---
+
+## Bonus Question
+
+### Combining GroupBy with Custom Aggregations
+
+- **Functions to Use**: `groupby()`, `agg()`, `reset_index()`
+  
+- **Task**: Group the data by `driverId` and `Year` (if available), then calculate:
+  - The number of races participated in.
+  - The total points earned.
+  - The best finishing position achieved.
+  
+- Return a DataFrame with columns: `Driver`, `Year`, `RacesParticipated`, `TotalPoints`, and `BestPosition`.
+
+---
+
+Good luck! 😊

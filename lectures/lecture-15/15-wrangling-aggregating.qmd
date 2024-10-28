@@ -1,0 +1,885 @@
+---
+title: QTM 350 - Data Science Computing
+subtitle: Lecture 15 - Data Wrangling and Aggregating
+date: 2024-10-23
+date-format: "DD MMMM, YYYY"
+author:
+  - name: Danilo Freire
+    email: danilo.freire@emory.edu
+    affiliations: Emory University
+format:
+  clean-revealjs:
+    self-contained: true
+    code-overflow: wrap
+    footer: "[Wrangling](https://raw.githack.com/danilofreire/qtm350/main/lectures/lecture-15/15-wrangling-aggregating.html)"
+    drop:
+      button: true
+      engine: pyodide
+      pyodide:
+        packages:
+          - matplotlib
+          - micropip
+          - numpy
+          - pandas
+          - seaborn
+transition: slide
+transition-speed: default
+scrollable: true
+engine: jupyter
+revealjs-plugins:
+  - appearance
+  - drop
+  - fontawesome
+  - multimodal
+editor:
+  render-on-save: true
+---
+
+# Nice to see you all again! 😊 {background-color="#2d4563"}
+
+# Brief recap 🤓 {background-color="#2d4563"}
+
+## Last time we learned about:
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width="35%"}
+- Numpy arrays and basic element-wise operations (addition, exponentiation, etc.)
+- Broadcasting arrays to perform operations on arrays of different shapes
+- Indexing and slicing arrays
+- Basics of Pandas Series and DataFrames
+  - Creating Series and DataFrames
+  - Indexing and slicing
+  - Filtering
+  - Sorting
+- Reading and writing data from/to files
+:::
+
+:::{.column width="65%"}
+:::{style="text-align: center;"}
+[![](figures/cheat.png)](#){data-modal-type="image"}
+
+Click on the image to increase its size
+:::
+:::
+:::
+:::
+
+# Today's plan 📅 {background-color="#2d4563"}
+
+## Today we will discuss how to:
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width="35%"}
+- Reshape datasets using `melt()` and `pivot()`
+- Aggregate data using `groupby()`
+- Apply functions to groups of data with `apply()`
+- Combine data from different sources with `merge()`
+- Handle missing data with `dropna()` and `fillna()`
+- Plot data with pandas' built-in plotting functions
+:::
+
+:::{.column width="65%"}
+:::{style="text-align: center;"}
+[![](figures/groupby.png)](#){data-modal-type="image"}
+::: 
+:::
+:::
+:::
+
+# Reshaping data 🔄 {background-color="#2d4563"}
+
+## Tidy data
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+:::{.columns}
+:::{.column width="50%"}
+- Analysts often say that 80% of data analysis is spent on the cleaning and preparing data
+- [Tidy data](https://r4ds.had.co.nz/tidy-data.html){data-modal-type="iframe"} is a standard way of mapping the meaning of a dataset to its structure 
+- Formalised by [Hadley Wickham](https://en.wikipedia.org/wiki/Hadley_Wickham){data-modal-type="iframe"} in 2014 (of `R` fame), it has three principles:
+  1. [Each variable forms a column]{.alert}
+  2. [Each observation forms a row]{.alert}
+  3. [Each type of observational unit forms a table]{.alert}
+- Often you'll need to reshape a dataframe to make it tidy (or for some other purpose)
+:::
+
+:::{.column width="50%"}
+:::{style="text-align: center;"}
+[![](figures/tidy.png)](#){data-modal-type="image"}
+
+- Real-world datasets frequently break the three principles in many ways (looking at you, Excel users! 😅)
+- However, most messy datasets can be cleaned up using three simple techniques: [melting, string splitting, and casting]{.alert}
+- Here we will focus on the `melt()` and `pivot()` functions
+:::
+:::
+:::
+:::
+
+## `melt()` and `pivot()`
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+:::{.columns}
+:::{.column width="50%"}
+- Pandas `.melt()`, `.pivot()` and `.pivot_table()` can help reshape dataframes
+ - `.melt()`: make wide data [long](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.melt.html){data-modal-type="iframe"}
+ - `.pivot()`: make long data [wide](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.pivot.html){data-modal-type="iframe"}
+ - `.pivot_table()`: same as `.pivot()` but can handle [multiple indexes](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.pivot_table.html){data-modal-type="iframe"}
+
+- "Wide" data has many columns and few rows
+- "Long" data has many rows and few columns
+- The choice of wide vs. long format depends on the analysis you want to do, but long format is often more flexible
+:::
+
+:::{.column width="50%"}
+:::{style="text-align: center;"}
+[![](figures/melt.gif)](#){data-modal-type="image}
+:::
+:::
+:::
+:::
+
+## Example: `melt()`
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- The data below shows how many courses different instructors taught across different years 
+- If the question you want to answer is something like: "Does the number of courses taught vary depending on year?", [then the data would not be considered tidy]{.alert} 
+- Why? Because there are multiple observations of courses taught in a year per row (i.e., there is data for 2018, 2019 and 2020 in a single row)
+
+```{python}
+#| echo: true
+#| eval: true
+import numpy as np
+import pandas as pd
+
+df = pd.DataFrame({"Name": ["Tom", "Mike", "Tiffany", "Varada", "Joel"],
+                   "2018": [1, 3, 4, 5, 3],
+                   "2019": [2, 4, 3, 2, 1],
+                   "2020": [5, 2, 4, 4, 3]})
+df
+```
+:::
+
+:::{.column width="50%"}
+- Let’s make it tidy with `.melt()`
+- `.melt()` takes a few arguments, most important is the [id_vars]{.alert} which indicated which column should be the `identifier`
+
+```{python}
+#| echo: true
+#| eval: true
+df_melt = df.melt(id_vars="Name",       # identifier
+                  var_name="Year",      # new column for the years
+                  value_name="Courses") # new column for the courses
+df_melt
+```
+:::
+:::
+:::
+
+## Example: `melt()`
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- The `value_vars` argument allows us to select which specific variables we want to "melt"
+- If you don’t specify `value_vars` (as I did before), all non-identifier columns will be used
+- For example, below I’m omitting the 2018 column:
+
+```{python}
+#| echo: true
+#| eval: true
+df_melt = df.melt(id_vars="Name",       # identifier
+                  var_name="Year",      # new column for the years
+                  value_name="Courses", # new column for the courses
+                  value_vars=["2019", "2020"]) # only 2019 and 2020
+df_melt
+```
+:::
+
+## Example: `pivot()`
+
+:::{style="margin-top: 30px; font-size: 19px;"}
+:::{.columns}
+:::{.column width="50%"}
+- Sometimes, you may want to make long data wide
+  - Examples: in presentations (for clarity)
+  - Running [MANOVA](https://en.wikipedia.org/wiki/Multivariate_analysis_of_variance){data-modal-type="iframe"} or repeated measures analyses
+  - Building [correlation matrices](https://en.wikipedia.org/wiki/Correlation_and_dependence){data-modal-type="iframe"}
+- We can do that with `.pivot()` 
+- When using `.pivot()` we need to specify the index to pivot on, and the columns that will be used to make the new columns of the wider dataframe
+
+```{python}
+#| echo: true
+#| eval: true
+df_pivot = df_melt.pivot(index="Name",
+                         columns="Year",
+                         values="Courses")
+display(df_pivot)
+```
+:::
+
+:::{.column width="50%"}
+- You’ll notice that Pandas set our specified index as the `index` of the new dataframe
+- It also preserved the label of the columns
+- We can easily remove these names and reset the index to make our dataframe look like it originally did with [`.reset_index()`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.reset_index.html){data-modal-type="iframe"}
+
+```{python}
+#| echo: true
+#| eval: true
+df_pivot = df_pivot.reset_index() 
+df_pivot
+```
+
+- Hmmm, what about `Year`? 🤔
+- When pivoting, pandas sets the columns index name to match the `columns` parameter in `.pivot()`, which was `Year`
+
+```{python}
+#| echo: true
+#| eval: true
+df_pivot.columns.name = None
+df_pivot
+```
+:::
+:::
+:::
+
+# Working with Multiple DataFrames 🤝 {background-color="#2d4563"}
+
+## Combining data with `.concat()`
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width="50%"}
+- Often you’ll work with multiple dataframes that you want to stick together or merge 
+- `df.merge()` and `df.concat()` are [all you need] to know for combining dataframes
+- The [Pandas documentation](https://pandas.pydata.org/pandas-docs/stable/user_guide/merging.html){data-modal-type="iframe"} is very helpful for these functions, but they are pretty easy to grasp
+- `df.concat()` is used to stick dataframes together, either by rows or columns
+- `df.merge()` is used to combine dataframes based on a common column
+  - It’s like a [SQL join](https://en.wikipedia.org/wiki/Join_(SQL)){data-modal-type="iframe"} for those familiar with SQL (if you’re not, don’t worry we'll learn about it soon 😊)
+:::
+
+:::{.column width="50%"}
+- You can use `pd.concat()` to stick dataframes together: 
+ - [Vertically]{.alert}: if they have the same columns, OR 
+ - [Horizontally]{.alert}: if they have the same rows
+
+```{python}
+#| echo: true
+#| eval: true
+df1 = pd.DataFrame({'A': [1, 3, 5],
+                    'B': [2, 4, 6]})
+df2 = pd.DataFrame({'A': [7, 9, 11],
+                    'B': [8, 10, 12]})
+df1
+```
+
+```{python}
+#| echo: true
+#| eval: true
+df2
+```
+:::
+:::
+:::
+
+## Example: `pd.concat()`
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width="45%"}
+- Let’s stick these dataframes together vertically
+- Just pass a list of dataframes to `pd.concat()`
+
+```{python}
+#| echo: true
+#| eval: true
+df_concat = pd.concat([df1, df2])
+df_concat
+```
+:::
+
+:::{.column width="55%"}
+- Notice that the indexes were simply joined together? 
+- This may or may not be what you want
+- To reset the index, you can specify the argument `ignore_index=True`:
+
+```{python}
+#| echo: true
+#| eval: true
+df_concat = pd.concat([df1, df2], ignore_index=True)
+df_concat
+```
+:::
+:::
+:::
+
+## More options of `pd.concat()`
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width="43%"}
+- You can also concatenate dataframes horizontally
+- If you do this, you can specify the `axis` argument to be `1` (default is `0`)
+
+```{python}
+#| echo: true
+#| eval: true
+df_concat = pd.concat([df1, df2], axis=1)
+df_concat
+```
+:::
+
+:::{.column width="57%"}
+- You are not limited to just two dataframes, you can concatenate as many as you want
+
+```{python}
+#| echo: true
+#| eval: true
+pd.concat([df1, df2, df1, df2], axis=0, ignore_index=True)
+```
+:::
+:::
+:::
+
+## Combining data with `.merge()`
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+:::{.columns}
+:::{.column width="50%"}
+- `pd.merge()` gives you the ability to “join” dataframes using different rules 
+  - Again, just like with SQL if you’re familiar with it
+- You can use `df.merge()` to join dataframes based on shared key columns
+- Methods include:
+  - `inner join`: only keep rows where the key exists in both dataframes
+  - `outer join`: keep all rows from both dataframes
+  - `left join`: keep all rows from the left dataframe
+  - `right join`: keep all rows from the right dataframe
+
+:::
+
+:::{.column width="50%"}
+:::{style="text-align: center;"}
+[![](figures/joins.jpg)](#){data-modal-type="image"}
+:::
+
+- See this [great cheat sheet](https://pandas.pydata.org/pandas-docs/stable/getting_started/comparison/comparison_with_sql.html#compare-with-sql-join){data-modal-type="iframe"} and [these great animations](https://github.com/gadenbuie/tidyexplain){data-modal-type="iframe"} for more insights
+:::
+:::
+:::
+
+## Example: `pd.merge()`
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- Let’s say we have two dataframes, one with information about superheroes and another with information about the publishers
+
+```{python}
+#| echo: true
+#| eval: true
+df1 = pd.DataFrame({"name": ['Magneto', 'Storm', 'Mystique', 'Batman', 'Joker', 'Catwoman', 'Hellboy'],
+                    'alignment': ['bad', 'good', 'bad', 'good', 'bad', 'bad', 'good'],
+                    'gender': ['male', 'female', 'female', 'male', 'male', 'female', 'male'],
+                    'publisher': ['Marvel', 'Marvel', 'Marvel', 'DC', 'DC', 'DC', 'Dark Horse Comics']})
+df2 = pd.DataFrame({'publisher': ['DC', 'Marvel', 'Image'],
+                    'year_founded': [1934, 1939, 1992]})
+```
+
+![](figures/join-heroes.png)
+:::
+
+## Inner join
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+
+- An inner join will return all rows of `df1` where matching values for `publisher` are found in `df2`
+
+```{python}
+#| echo: true
+#| eval: true
+pd.merge(df1, df2, how="inner", on="publisher")
+```
+
+![](figures/inner_join.png)
+:::
+
+## Outer join
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- An `outer` join will return all rows of `df1` and `df2`, placing `NaNs` where information is unavailable
+
+```{python}
+#| echo: true
+#| eval: true
+pd.merge(df1, df2, how="outer", on="publisher")
+```
+
+![](figures/outer_join.png)
+:::
+
+## Left join
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- A `left` join will return all rows of `df1`, and any matching rows from `df2`
+
+```{python}
+#| echo: true
+#| eval: true
+pd.merge(df1, df2, how="left", on="publisher")
+```
+
+![](figures/left_join.png)
+:::
+
+## Right join
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- A `right` join, as expected, will return all rows of `df2`, and any matching rows from `df1`
+
+```{python}
+#| echo: true
+#| eval: true
+pd.merge(df1, df2, how="right", on="publisher")
+```
+
+- Cool, isn't it? 😊
+:::
+
+## The `indicator` argument
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- The `indicator` argument can be used to show where the rows came from
+- It can be set to `True` to create a new column with the information, or to a string to name the column
+- Let’s see how it works
+
+```{python}
+#| echo: true
+#| eval: true
+pd.merge(df1, df2, how="outer", on="publisher", indicator=True)
+```
+:::
+
+# More DataFrame operations 🛠️ {background-color="#2d4563"}
+
+# Applying custom functions to DataFrames 🧮 {background-color="#2d4563"}
+
+## Applying custom functions
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width="50%"}
+- There will be times when you want to apply a function that is not built-in to Pandas
+- For this, we also have methods:
+  - `df.apply()`, applies a function column-wise or row-wise across a dataframe (the function must be able to accept/return an array)
+  - `df.applymap()`, applies a function element-wise (for functions that accept/return single values at a time)
+  - `series.apply()`/`series.map()`, same as above but for Pandas series
+
+- Let's go back to the dataset we saw before (about cycling) and see how we can apply a numpy function to it
+
+```{python}
+#| echo: true
+#| eval: true
+df = pd.read_csv("data/cycling_data.csv")
+df[['Time', 'Distance']].apply(np.sin)
+```
+:::
+
+:::{.column width="50%"}
+- Or you may want to apply your own custom function
+
+```{python}
+#| echo: true
+#| eval: true
+def seconds_to_hours(x):
+    return x / 3600
+
+df[['Time']].apply(seconds_to_hours)
+```
+
+- However, this could be done more easily with a lambda function
+
+```{python}
+#| echo: true
+#| eval: true
+df[['Time']].apply(lambda x: x / 3600)
+```
+:::
+:::
+:::
+
+## Applying custom functions
+
+:::{style="margin-top: 30px; font-size: 25px;"}
+- You can even use functions that require additional arguments. Just specify the arguments in `.apply()`:
+
+```{python}
+#| eval: true
+#| echo: true
+def convert_seconds(x, to="hours"):
+    if to == "hours":
+        return x / 3600
+    elif to == "minutes":
+        return x / 60
+
+df[['Time']].apply(convert_seconds, to="minutes")
+```
+:::
+
+# Grouping and Aggregating 📊 {background-color="#2d4563"}
+
+## Grouping data
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width="50%"}
+- Often we are interested in examining specific groups in our data 
+- `df.groupby()` allows us to group our data based on a variable(s)
+
+```{python}
+#| eval: true
+#| echo: true
+df = pd.read_csv('data/cycling_data.csv')
+df.head()
+```
+
+- Let’s group this dataframe on the column `Name`:
+
+```{python}
+#| eval: true
+#| echo: true
+dfg = df.groupby(by='Name')
+dfg
+```
+
+- What is a `DataFrameGroupBy` object? It contains information about the groups of the dataframe
+:::
+
+:::{.column width="50%"}
+- You can access the groups using the `.groups` attribute
+- This will return a dictionary where the keys are the group names and the values are the indices of the rows in the original dataframe that belong to that group
+
+```{python}
+#| eval: true
+#| echo: true
+dfg.groups
+```
+
+![](figures/groupby_1.png)
+:::
+:::
+:::
+
+## Grouping data
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width="50%"}
+- We can also access a group using the `.get_group()` method:
+
+```{python}
+#| eval: true
+#| echo: true
+dfg.get_group('Afternoon Ride').head()
+```
+:::
+
+:::{.column width="50%"}
+
+```{python}
+#| eval: true
+#| echo: true
+dfg.get_group('Morning Ride').head()
+```
+:::
+:::
+:::
+
+## Aggregating data
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- The usual thing to do however, is to apply aggregate functions to the `groupby` object
+
+:::{style="text-align: center;"}
+![](figures/groupby_2.png){width="70%"}
+:::
+
+[Split-apply-combine strategy](https://jakevdp.github.io/PythonDataScienceHandbook/03.08-aggregation-and-grouping.html#GroupBy:-Split,-Apply,-Combine){data-modal-type="iframe"}
+:::
+
+## Aggregating data
+
+:::{style="margin-top: 30px; font-size: 19px;"}
+:::{.columns}
+:::{.column width="50%"}
+### Functions
+
+- You can pass many functions to groupby objects, such as:
+  - `mean()`
+  - `sum()`
+  - `count()`
+  - `std()`
+  - `min()`
+  - `max()`
+  - `median()`
+  - `describe()`
+  - `apply()`
+  - `transform()`
+  - `filter()`
+
+```{python}
+#| eval: true
+#| echo: true
+dfg['Distance'].mean()
+```
+:::
+
+:::{.column width="50%"}
+### Aggregating multiple columns
+
+- You can also pass many functions at the same time
+- The `.agg()` method is used for this
+- It takes a dictionary where the keys are the columns and the values are the functions to apply
+- Multiple functions can be passed as a list
+
+```{python}
+#| eval: true
+#| echo: true
+dfg.agg({'Distance': ['mean', 'sum', 'count'], 
+         'Time': ['mean', 'sum', 'count']})
+```
+:::
+:::
+:::
+
+## Aggregating data
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width="50%"}
+- And even apply different functions to different columns
+
+```{python}
+#| eval: true
+#| echo: true
+def num_range(x):
+    return x.max() - x.min()
+
+dfg.agg({"Time": ['max', 'min', 'mean', num_range], 
+         "Distance": ['sum']})
+```
+:::
+
+:::{.column width="50%"}
+- By the way, you can use `.agg()` for non-grouped dataframes too 
+- This is pretty much what `df.describe()` does under the hood:
+
+```{python}
+#| eval: true
+#| echo: true
+# Select only numeric values
+numeric_df = df.select_dtypes(include='number')
+
+# Apply the function
+numeric_df.agg(['count', 'mean', 'median', 'std', 'min', 'max'])
+```
+:::
+:::
+:::
+
+# Dealing with Missing Values {background-color="#2d4563"}
+
+## Missing data
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width="50%"}
+- Missing data is a common problem in data analysis
+- Pandas has a few methods to deal with missing data
+- The most common are:
+  - `isnull()`: returns a boolean mask where `True` indicates missing values
+  - `notnull()`: opposite of `isnull()`
+  - `dropna()`: removes missing values
+  - `fillna()`: fills missing values with a specified value
+  - `interpolate()`: fills missing values with interpolated values
+:::
+
+:::{.column width="50%"}
+- We can use `df.isnull()` to find missing values in a dataframe
+
+```{python}
+#| eval: true
+#| echo: true
+df.isnull().head(3)
+```
+
+- `df.info()` is often more useful
+
+```{python}
+#| eval: true
+#| echo: true
+df.info()
+```
+:::
+:::
+:::
+
+## Dropping missing values
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width="50%"}
+- The simplest way to deal with missing values is to drop them
+- You can use the `.dropna()` method to do this
+  
+```{python}
+#| eval: true
+#| echo: true
+df.dropna().head()
+```
+:::
+
+:::{.column width="50%"}
+- Or you can impute ("fill") them using `.fillna()` 
+- This method has [various options for filling](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.fillna.html){data-modal-type="iframe"}
+- You can use a fixed value, the mean of the column, the previous non-nan value, etc
+
+```{python}
+#| eval: true
+#| echo: true
+
+
+df = pd.DataFrame([[np.nan, 2, np.nan, 0],
+                   [3, 4, np.nan, 1],
+                   [np.nan, np.nan, np.nan, 5],
+                   [np.nan, 3, np.nan, 4]],
+                  columns=list('ABCD'))
+df
+```
+:::
+:::
+:::
+
+## Filling missing values
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width="50%"}
+```{python}
+#| eval: true
+#| echo: true
+df.fillna(0)  # fill with 0
+```
+:::
+
+:::{.column width="50%"}
+
+```{python}
+#| eval: true
+#| echo: true
+df.fillna(df.mean())  # fill with the mean
+```
+:::
+:::
+:::
+
+# Visualising DataFrames 📈 {background-color="#2d4563"}
+
+## Plotting data with Pandas
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- Pandas has some built-in plotting functions that are very useful
+- You can use them by calling `.plot()` on a dataframe or series
+
+```{python}
+#| eval: true
+#| echo: true
+df = pd.read_csv('data/cycling_data.csv', index_col=0, parse_dates=True).dropna()
+```
+
+- Let’s plot the `Distance` column
+
+```{python}
+#| eval: true
+#| echo: true
+df['Distance'].plot()
+```
+:::
+
+## Plotting data with Pandas
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width="50%"}
+- Cumulative sum of the `Distance` column
+
+```{python}
+#| eval: true
+#| echo: true
+df['Distance'].cumsum().plot.line()
+```
+:::
+
+:::{.column width="50%"}
+- You can also plot multiple columns at once
+
+```{python}
+#| eval: true
+#| echo: true
+df[['Distance', 'Time']].plot()
+```
+:::
+:::
+:::
+
+## Plotting data with Pandas
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width="50%"}
+- There are many configuration options for these plots which build of the `matplotlib` library
+
+```{python}
+#| eval: true
+#| echo: true
+df['Distance'].cumsum().plot.line(fontsize=14, linewidth = 2, color = 'r', ylabel="km")
+```
+:::
+
+:::{.column width="50%"}
+- You can even use custom themes with the `style` argument
+
+```{python}
+#| eval: true
+#| echo: true
+import matplotlib.pyplot as plt
+import mplcyberpunk
+plt.style.use("cyberpunk")
+
+df['Distance'].plot.line(ylabel="km")
+mplcyberpunk.add_glow_effects()
+```
+:::
+:::
+:::
+
+# That's all for today! 🎉 {background-color="#2d4563"}
+
+# Have a great day! 😊 {background-color="#2d4563"}
+
+## Appendix: Cheat Sheets 📜
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+- Click on the images to increase their size
+- You can download the files by clicking [here](https://pandas.pydata.org/Pandas_Cheat_Sheet.pdf)
+- More cheat sheets can be found [here](https://practice2code.blogspot.com/2017/07/cheat-sheets-for-data-science-machine.html)
+
+:::{.columns}
+:::{style="text-align: center;"}
+:::{.column width="50%"}
+[![](figures/cheat02.png)](#){data-modal-type="image"}
+:::
+
+:::{.column width="50%"}
+[![](figures/cheat03.png)](#){data-modal-type="image"}
+:::
+:::
+:::
+:::
