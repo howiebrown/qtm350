@@ -2,7 +2,22 @@
 
 ## Course Description
 
-Welcome to [QTM 350](https://github.com/danilofreire/qtm350)! This course introduces key tools in modern data science, focusing on three essential aspects: reliability, reproducibility, and robustness. We will cover command line interfaces and [vim](https://www.vim.org/), version control with [Git](https://git-scm.com/) and [GitHub](https://github.com/), and literate programming using [Quarto](https://quarto.org/) and [Jupyter Notebooks](https://jupyter.org/). You will also learn about data storage and manipulation with [SQL](https://www.w3schools.com/sql/) and [Pandas](https://pandas.pydata.org/), data visualisation using [Matplotlib](https://matplotlib.org/), [Seaborn](https://seaborn.pydata.org/) and [plotnine](https://plotnine.readthedocs.io/), and parallel computing with [Dask](https://www.dask.org/). We will explore artificial intelligence-assisted programming with [GitHub Copilot](https://github.com/features/copilot) and finish with [Docker](https://www.docker.com/) and containerisation. Throughout the course, you will learn how to use these tools to improve your data science workflow and create more reliable, reproducible, and robust analyses.
+Welcome to [QTM 350](https://github.com/danilofreire/qtm350)! This course
+introduces key tools in modern data science, focusing on three essential
+aspects: reliability, reproducibility, and robustness. We will cover command
+line interfaces, version control with [Git](https://git-scm.com/) and
+[GitHub](https://github.com/), and literate programming using
+[Quarto](https://quarto.org/) and [Jupyter Notebooks](https://jupyter.org/).
+You will also learn about data storage and manipulation with
+[SQL](https://www.w3schools.com/sql/) and [Pandas](https://pandas.pydata.org/),
+data visualisation using [Matplotlib](https://matplotlib.org/),
+[Seaborn](https://seaborn.pydata.org/) and
+[plotnine](https://plotnine.readthedocs.io/), and parallel computing with
+[Dask](https://www.dask.org/). We will explore artificial intelligence-assisted
+programming with [GitHub Copilot](https://github.com/features/copilot) and
+finish with [Docker](https://www.docker.com/) and containerisation. Throughout
+the course, you will learn how to use these tools to improve your data science
+workflow and create more reliable, reproducible, and robust analyses.
 
 ## Contact Information
 
