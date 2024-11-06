@@ -1,6 +1,6 @@
 -- QTM 350: Data Science Computing
 -- Assignment 09: SQL Practice
--- Name:
+-- Name: Howie Brown
 -- Instructions:
 -- You may use pgAdmin or any SQL editor of your choice to complete this assignment.
 -- Ensure all answers are within a single SQL file, and submit this file on Canvas.
@@ -39,28 +39,53 @@ INSERT INTO drivers VALUES
 SELECT * FROM drivers;
 
 -- 1. List drivers by team and victories in descending order.
+SELECT team, driver_name, victories
+FROM drivers
+ORDER BY team, victories DESC;
 
 -- 2. List drivers who have won more races than the average number of victories across all drivers.
+SELECT driver_name, victories
+FROM drivers
+WHERE victories > (SELECT AVG(victories) FROM drivers);
 
--- 3. Find all drivers with more than 50 podiums or in Ferrari team.
+-- 3. Find all drivers with more than 50 podiums or in the Ferrari team.
+SELECT driver_name, team, podiums
+FROM drivers
+WHERE podiums > 50 OR team = 'Ferrari';
 
 -- 4. Count drivers by nationality with podiums above 40.
+SELECT nationality, COUNT(driver_id) AS driver_count
+FROM drivers
+WHERE podiums > 40
+GROUP BY nationality;
 
 -- 5. Calculate average points for each team, rounded to two decimals.
--- Hint: You will have to use ROUND() and CAST() to convert the variable to numeric.
+SELECT team, ROUND(AVG(points), 2) AS average_points
+FROM drivers
+GROUP BY team;
 
 -- 6. List drivers in top 20% by points.
--- Hint: You will need to use the PERCENTILE_CONT() function.
+SELECT driver_name, points
+FROM drivers
+WHERE points >= (SELECT PERCENTILE_CONT(0.80) WITHIN GROUP (ORDER BY points) FROM drivers);
 
 -- 7. Calculate total victories, podiums, and average points for German drivers.
+SELECT nationality, SUM(victories) AS total_victories, SUM(podiums) AS total_podiums, ROUND(AVG(points), 2) AS average_points
+FROM drivers
+WHERE nationality = 'German'
+GROUP BY nationality;
 
 -- 8. List all drivers whose names contain both 'a' and 'e'.
--- Hint: Here you will use a new function, LIKE, to filter the driver_name column.
--- WHERE driver_name LIKE .... AND driver_name LIKE ....; (use % as wildcard with LIKE)
+SELECT driver_name
+FROM drivers
+WHERE driver_name LIKE '%a%' AND driver_name LIKE '%e%';
 
 -- 9. Retrieve the driver with the highest victories in each team.
--- Hint: Here you will have to use the alias "drivers d" to allow referencing the "drivers"
--- table in the subquery when filtering by team in the WHERE clause ("WHERE team = d.team").
+SELECT driver_name, team, victories
+FROM drivers d
+WHERE victories = (SELECT MAX(victories) FROM drivers WHERE team = d.team);
 
 -- 10. List drivers with below-average points for their team.
--- Hint: You will need to use an alias for the table here as well.
+SELECT driver_name, team, points
+FROM drivers d
+WHERE points < (SELECT AVG(points) FROM drivers WHERE team = d.team);
